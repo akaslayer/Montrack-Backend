@@ -36,9 +36,6 @@ public class GlobalExceptionHandling {
         return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Unable to process the request", errorsMap);
     }
 
-
-
-
     @ExceptionHandler(Exception.class)
     public final ResponseEntity<Response<String>> handleAllExceptions(Exception ex) {
 
