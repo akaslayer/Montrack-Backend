@@ -1,13 +1,20 @@
 package com.montrackjpa.JPASpringBootExercises.users.service.impl;
 
+import com.montrackjpa.JPASpringBootExercises.auth.helpers.Claims;
 import com.montrackjpa.JPASpringBootExercises.exceptions.InputException;
 import com.montrackjpa.JPASpringBootExercises.users.dto.ForgotPasswordRequestDTO;
 import com.montrackjpa.JPASpringBootExercises.users.dto.ProfileRequestDTO;
 import com.montrackjpa.JPASpringBootExercises.users.dto.RegisterRequestDTO;
+import com.montrackjpa.JPASpringBootExercises.users.dto.SetupPinRequestDTO;
 import com.montrackjpa.JPASpringBootExercises.users.entity.User;
 import com.montrackjpa.JPASpringBootExercises.users.repository.UserRepository;
 import com.montrackjpa.JPASpringBootExercises.users.service.UserService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,13 +41,42 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ProfileRequestDTO updateProfile(ProfileRequestDTO profileRequestDTO) {
-        User userData = userRepository.findByEmail(profileRequestDTO.getEmail()).orElseThrow(() -> new InputException("User not found"));
+        var claims = Claims.getClaimsFromJwt();
+        var email = (String) claims.get("sub");
+        User userData = userRepository.findByEmail(email).orElseThrow(() -> new InputException("User not found"));
         userData.setEmail(profileRequestDTO.getEmail());
         userData.setUserImg(profileRequestDTO.getProfile_photo());
         userData.setFullname(profileRequestDTO.getName());
         userRepository.save(userData);
         return profileRequestDTO;
     }
+
+    @Override
+    public ProfileRequestDTO getProfile() {
+        var claims = Claims.getClaimsFromJwt();
+        var email = (String) claims.get("sub");
+
+        User userData = userRepository.findByEmail(email).orElseThrow(() -> new InputException("User not found"));
+        ProfileRequestDTO profileRequestDTO = new ProfileRequestDTO();
+        profileRequestDTO.setEmail(userData.getEmail());
+        profileRequestDTO.setProfile_photo(userData.getUserImg());
+        profileRequestDTO.setName(userData.getFullname());
+        return profileRequestDTO;
+    }
+
+    @Override
+    public User setPin(SetupPinRequestDTO setupPinRequestDTO) {
+        var claims = Claims.getClaimsFromJwt();
+        var email = (String) claims.get("sub");
+        if(!setupPinRequestDTO.getPin().equals(setupPinRequestDTO.getPinConfirm())){
+            throw new InputException("Pin is not match");
+        }
+        User userData = userRepository.findByEmail(email).orElseThrow(() -> new InputException("User not found"));
+        var password = passwordEncoder.encode(setupPinRequestDTO.getPin());
+        userData.setHashPin(password);
+        return userData;
+    }
+
 
     public User register(RegisterRequestDTO user) {
         boolean exists = userRepository.findAll()
@@ -83,7 +119,6 @@ public class UserServiceImpl implements UserService {
     public User profile() {
         return null;
     }
-
 
 
 }

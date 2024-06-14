@@ -2,10 +2,7 @@ package com.montrackjpa.JPASpringBootExercises.users.controller;
 
 
 import com.montrackjpa.JPASpringBootExercises.responses.Response;
-import com.montrackjpa.JPASpringBootExercises.users.dto.ForgotPasswordRequestDTO;
-import com.montrackjpa.JPASpringBootExercises.users.dto.ForgotPasswordResponseDTO;
-import com.montrackjpa.JPASpringBootExercises.users.dto.ProfileRequestDTO;
-import com.montrackjpa.JPASpringBootExercises.users.dto.RegisterRequestDTO;
+import com.montrackjpa.JPASpringBootExercises.users.dto.*;
 import com.montrackjpa.JPASpringBootExercises.users.entity.User;
 import com.montrackjpa.JPASpringBootExercises.users.service.UserService;
 import lombok.extern.java.Log;
@@ -44,8 +41,19 @@ public class UserController {
 
 
     @PostMapping("/profile")
-    public ResponseEntity<?> profile(@RequestBody ProfileRequestDTO profileRequestDTO) {
+    public ResponseEntity<?> profile(@RequestBody @Validated  ProfileRequestDTO profileRequestDTO) {
         ProfileRequestDTO profileData = userService.updateProfile(profileRequestDTO);
         return Response.successfulResponse("Profile data has been changed", profileData);
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfile(){
+        return Response.successfulResponse("Profile data has been fetched", userService.getProfile());
+    }
+
+    @PostMapping("/pin")
+    public ResponseEntity<?> profile(@RequestBody @Validated SetupPinRequestDTO setupPinRequestDTO) {
+        User userData = userService.setPin(setupPinRequestDTO);
+        return Response.successfulResponse("Profile data has been changed", userData);
     }
 }

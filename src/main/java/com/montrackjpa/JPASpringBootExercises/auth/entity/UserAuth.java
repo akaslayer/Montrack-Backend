@@ -37,7 +37,7 @@ public class UserAuth extends User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getFullname();
+        return user.getEmail();
     }
 
     @Override

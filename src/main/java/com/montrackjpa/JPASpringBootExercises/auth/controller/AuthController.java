@@ -8,7 +8,10 @@ import com.montrackjpa.JPASpringBootExercises.auth.entity.UserAuth;
 import com.montrackjpa.JPASpringBootExercises.auth.service.AuthService;
 import com.montrackjpa.JPASpringBootExercises.responses.Response;
 import com.montrackjpa.JPASpringBootExercises.users.dto.ForgotPasswordRequestDTO;
+import jakarta.servlet.http.Cookie;
 import lombok.extern.java.Log;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -53,6 +56,21 @@ public class AuthController {
         LoginResponseDto response = new LoginResponseDto();
         response.setMessage("User logged in successfully");
         response.setToken(token);
-        return Response.successfulResponse( response.getMessage(), response);
+
+        Cookie cookie = new Cookie("Sid", token);
+        cookie.setMaxAge(6000); // Cookie will expire in 1 hour
+        cookie.setPath("/");
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Set-Cookie", cookie.getName() + "=" + cookie.getValue() + "; Path=/; HttpOnly");
+        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(Response.successfulResponse( "Login succesfull", response));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(){
+        authService.logout();
+        return Response.successfulResponse("User has been succesfully logout");
+    }
+
+
+
 }
